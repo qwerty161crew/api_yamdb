@@ -22,12 +22,18 @@ class Titles(models.Model):
     categories = models.ForeignKey(
         Categories, related_name='categories', on_delete=models.DO_NOTHING)
 
+    def __str__(self):
+        return self.name
+
 
 class Genres(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
     titles = models.ManyToManyField(
         Titles, related_name='titles')
+
+    def __str__(self):
+        return self.titles
 
 
 class Reviews(models.Model):
@@ -39,6 +45,9 @@ class Reviews(models.Model):
     score = models.FloatField(
         validators=[MinValueValidator(1.0), MaxValueValidator(5.0)])
     pud_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.text
 
 
 class Comments(models.Model):
