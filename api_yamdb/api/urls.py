@@ -3,6 +3,6 @@ from django.views.generic import TemplateView
 
 app_name = 'api'
 
-# urlpatterns = [
-#     path('')
-# ]
+urlpatterns = [
+
+]
