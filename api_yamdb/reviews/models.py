@@ -18,7 +18,7 @@ class Titles(models.Model):
     name = models.CharField(max_length=200)
     year = models.IntegerField()
     categories = models.ForeignKey(
-        Categories, related_name='categories', on_delete=models.DO_NOTHING)
+        Categories, related_name='categories', on_delete=models.DO_NOTHING, null=True)
 
     def __str__(self):
         return self.name
@@ -41,7 +41,8 @@ class Reviews(models.Model):
     author = models.ForeignKey(
         User, related_name='author_reviews', on_delete=models.CASCADE)
     score = models.FloatField(
-        validators=[MinValueValidator(1.0), MaxValueValidator(5.0)])
+        validators=[MinValueValidator(1.0), MaxValueValidator(10.0)],
+        error_messages={'validators': 'Оценка от 1 до 10!'})
     pud_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -58,3 +59,5 @@ class Comments(models.Model):
 
     def __str__(self):
         return self.text
+
+
