@@ -5,7 +5,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 User = get_user_model()
 
-# Create your models here.
 
 
 class Categories(models.Model):
