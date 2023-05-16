@@ -2,6 +2,7 @@ from rest_framework import filters, mixins, viewsets, pagination
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly, IsAdminUser)
 from django.shortcuts import get_object_or_404
+from .permissions import IsAdminOrReadOnly
 
 from .serializers import ReviewsSerializers, TitlesSerializers, CommentsSerializers, CatigoriesSerializers, GenresSerializers
 
@@ -35,10 +36,10 @@ class CommentsViewSet(viewsets.ModelViewSet):
 class CategoriesViewSet(viewsets.ModelViewSet):
     queryset = Categories.objects.all()
     serializer_class = CatigoriesSerializers
-    permission_classes = (IsAdminUser, )
+    permission_classes = (IsAdminOrReadOnly, )
 
 
 class GenresViewSet(viewsets.ModelViewSet):
     queryset = Genres.objects.all()
     serializer_class = GenresSerializers
-    permission_classes = (IsAdminUser, )
+    permission_classes = (IsAdminOrReadOnly, )

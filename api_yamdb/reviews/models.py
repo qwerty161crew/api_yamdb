@@ -6,7 +6,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 User = get_user_model()
 
 
-
 class Categories(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
