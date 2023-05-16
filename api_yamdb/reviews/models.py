@@ -1,9 +1,36 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.contrib.auth.models import AbstractUser
 
 
-User = get_user_model()
+class User(AbstractUser):
+    ROLE_ANONYMOUS = 'anonymous'
+    ROLE_AUTHENTICATED = 'user'
+    ROLE_MODERATOR = 'moderator'
+    ROLE_ADMIN = 'admin'
+
+    ROLE_CHOICES = [
+        (ROLE_ANONYMOUS, 'Аноним'),
+        (ROLE_AUTHENTICATED, 'Аутентифицированный пользователь'),
+        (ROLE_MODERATOR, 'Модератор'),
+        (ROLE_ADMIN, 'Администратор'),
+    ]
+
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default=ROLE_AUTHENTICATED,
+    )
+    bio = models.TextField(
+        'Биография',
+        blank=True,
+    )
+
+    def save(self, *args, **kwargs):
+        if self.is_superuser:
+            self.role = self.ROLE_ADMIN
+        super().save(*args, **kwargs)
 
 
 class Categories(models.Model):

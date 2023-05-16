@@ -3,6 +3,7 @@ from .models import Reviews, Titles, Categories
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 
+<<<<<<< HEAD
 # класс обработки данных
 
 
@@ -19,3 +20,8 @@ class BookAdmin(ImportExportModelAdmin):
 
 
 admin.site.register(Reviews, BookAdmin)
+=======
+from reviews.models import User
+
+admin.site.register(User)
+>>>>>>> origin/feature/users
