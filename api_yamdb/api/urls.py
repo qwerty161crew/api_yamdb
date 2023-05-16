@@ -1,21 +1,25 @@
 from django.urls import path, include
 from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView, TokenVerifyView)
-from rest_framework.routers import SimpleRouter
+from rest_framework.routers import DefaultRouter
 
 from . import views
-router = SimpleRouter()
+router = DefaultRouter()
 
-router.register(r'/titles/(?P<title_id>\d+)/reviews/(?P<reviews_id>\d+)',
+router.register(r'titles/(?P<title_id>\d+)/reviews/(?P<reviews_id>\d+)',
                 views.ReviewsViewSet, basename='reviews')
-router.register(r'/categories/(?P<slug>\d+)',
+router.register(r'categories/(?P<slug>\d+)',
                 views.CategoriesViewSet, basename='categories')
-router.register(r'/titles/(?P<title_id>\d+)',
+router.register(r'titles/(?P<title_id>\d+)',
                 views.TitlesViewSet, basename='titles')
-router.register(r'/titles/(?P<title_id>\d+)/reviews/(?P<reviews_id>\d+)/comments/(?P<comment_id>\d+)',
+router.register(r'titles/(?P<title_id>\d+)/reviews/(?P<reviews_id>\d+)/comments/(?P<comment_id>\d+)',
                 views.CommentsViewSet, basename='comments')
-router.register(r'/genres/(?P<slug>\d+)',
-                views.GenresViewSet, basename='genres')
+router.register(r'genres/(?P<slug>\d+)', views.GenresViewSet, basename='genres')
+
+router.register('categories', views.CategoriesViewSet, basename='catigories')
+router.register('genres', views.GenresViewSet, basename='genres')
+router.register('titles', views.TitlesViewSet, basename='titles')
+
 
 app_name = 'api'
 
