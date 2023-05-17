@@ -59,7 +59,8 @@ class Title(models.Model):
         Categorie, related_name='categories', on_delete=models.DO_NOTHING, null=True)
     genre = models.ManyToManyField(
         Genre, related_name='genre', blank=True)
-    description = models.TextField(blank=True, verbose_name="Описание")
+    description = models.TextField(
+        null=True, blank=True, verbose_name="Описание")
 
     def __str__(self):
         return self.name
