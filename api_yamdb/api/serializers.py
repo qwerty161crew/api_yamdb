@@ -3,7 +3,7 @@ from rest_framework.relations import SlugRelatedField
 from django.db import models
 from rest_framework.generics import get_object_or_404
 
-from reviews.models import Categories, Titles, Genres, Reviews, Comments
+from reviews.models import Categorie, Title, Genre, Review, Comment
 
 
 class ReviewsSerializers(serializers.ModelSerializer):
@@ -11,7 +11,7 @@ class ReviewsSerializers(serializers.ModelSerializer):
 
     class Meta:
         fields = ('__all__', )
-        model = Reviews
+        model = Review
         read_only_fields = ('id', 'author', 'pub_date')
 
 
@@ -20,26 +20,26 @@ class CommentsSerializers(serializers.ModelSerializer):
 
     class Meta:
         fields = ('__all__', )
-        model = Comments
+        model = Comment
         read_only_fields = ('id', 'author', 'pub_date')
 
 
 class GenresSerializers(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'name', 'slug', 'titles')
-        model = Genres
+        model = Genre
         read_only_fields = ('id', )
 
 
 class TitlesSerializers(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'name', 'year', 'categories')
-        model = Titles
+        model = Title
         read_only_fields = ('id', )
 
 
 class CatigoriesSerializers(serializers.ModelSerializer):
     class Meta:
         fields = ('__all__',)
-        model = Categories
+        model = Categorie
         read_only_fields = ('id', )

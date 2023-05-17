@@ -6,11 +6,11 @@ from .permissions import IsAdminOrReadOnly
 
 from .serializers import ReviewsSerializers, TitlesSerializers, CommentsSerializers, CatigoriesSerializers, GenresSerializers
 
-from reviews.models import Reviews, Titles, Comments, Categories, Genres
+from reviews.models import Review, Title, Comment, Categorie, Genre
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
-    queryset = Reviews.objects.all()
+    queryset = Review.objects.all()
     serializer_class = ReviewsSerializers
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
@@ -19,13 +19,13 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Titles.objects.all()
+    queryset = Title.objects.all()
     serializer_class = TitlesSerializers
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
-    queryset = Comments.objects.all()
+    queryset = Comment.objects.all()
     serializer_class = CommentsSerializers
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
@@ -34,12 +34,12 @@ class CommentsViewSet(viewsets.ModelViewSet):
 
 
 class CategoriesViewSet(viewsets.ModelViewSet):
-    queryset = Categories.objects.all()
+    queryset = Categorie.objects.all()
     serializer_class = CatigoriesSerializers
     permission_classes = (IsAdminOrReadOnly, )
 
 
 class GenresViewSet(viewsets.ModelViewSet):
-    queryset = Genres.objects.all()
+    queryset = Genre.objects.all()
     serializer_class = GenresSerializers
     permission_classes = (IsAdminOrReadOnly, )

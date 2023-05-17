@@ -13,7 +13,8 @@ class User(AbstractUser):
 
     ROLE_CHOICES = [
         (ROLE_ANONYMOUS, 'Аноним'),
-        (ROLE_AUTHENTICATED, 'Аутентифицированный пользователь'),
+        (ROLE_AUTHENTICATED,
+         'Аутентифицированный пользователь'),
         (ROLE_MODERATOR, 'Модератор'),
         (ROLE_ADMIN, 'Администратор'),
     ]
@@ -34,7 +35,7 @@ class User(AbstractUser):
         super().save(*args, **kwargs)
 
 
-class Categories(models.Model):
+class Categorie(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
 
@@ -42,32 +43,32 @@ class Categories(models.Model):
         return self.name
 
 
-class Titles(models.Model):
+class Genre(models.Model):
+    name = models.CharField(max_length=300)
+    slug = models.SlugField(max_length=200, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Title(models.Model):
     name = models.CharField(max_length=200)
     year = models.IntegerField()
     categories = models.ForeignKey(
-        Categories, related_name='categories', on_delete=models.DO_NOTHING, null=True)
+        Categorie, related_name='categories', on_delete=models.DO_NOTHING, null=True)
+    genre = models.ManyToManyField(
+        Genre, related_name='genre')
 
     def __str__(self):
         return self.name
 
 
-class Genres(models.Model):
-    name = models.CharField(max_length=300)
-    slug = models.SlugField(max_length=200, unique=True)
-    titles = models.ManyToManyField(
-        Titles, related_name='titles', null=True)
-
-    def __str__(self):
-        return self.titles
-
-
-class Reviews(models.Model):
+class Review(models.Model):
     title = models.ForeignKey(
-        Titles, related_name='title', on_delete=models.CASCADE)
+        Title, related_name='title', on_delete=models.CASCADE)
     text = models.CharField(max_length=10000)
     author = models.ForeignKey(
-        User, related_name='author_reviews', on_delete=models.CASCADE)
+        User, related_name='author_reviews', on_delete=models.CASCADE, )
     score = models.FloatField(
         validators=[MinValueValidator(1.0), MaxValueValidator(10.0)],
         error_messages={'validators': 'Оценка от 1 до 10!'})
@@ -77,9 +78,9 @@ class Reviews(models.Model):
         return self.text
 
 
-class Comments(models.Model):
+class Comment(models.Model):
     review = models.ForeignKey(
-        Reviews, related_name='reviews', on_delete=models.CASCADE)
+        Review, related_name='review', on_delete=models.CASCADE)
     text = models.CharField(max_length=1000)
     author = models.ForeignKey(
         User, related_name='author', on_delete=models.CASCADE)
@@ -87,5 +88,3 @@ class Comments(models.Model):
 
     def __str__(self):
         return self.text
-
-
