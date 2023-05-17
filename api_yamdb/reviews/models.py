@@ -54,10 +54,11 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField(max_length=200)
     year = models.IntegerField()
-    categories = models.ForeignKey(
+    category = models.ForeignKey(
         Categorie, related_name='categories', on_delete=models.DO_NOTHING, null=True)
     genre = models.ManyToManyField(
         Genre, related_name='genre')
+    description = models.CharField(max_length=400)
 
     def __str__(self):
         return self.name
@@ -68,7 +69,7 @@ class Review(models.Model):
         Title, related_name='title', on_delete=models.CASCADE)
     text = models.CharField(max_length=10000)
     author = models.ForeignKey(
-        User, related_name='author_reviews', on_delete=models.CASCADE, )
+        User, related_name='author_review', on_delete=models.CASCADE, )
     score = models.FloatField(
         validators=[MinValueValidator(1.0), MaxValueValidator(10.0)],
         error_messages={'validators': 'Оценка от 1 до 10!'})

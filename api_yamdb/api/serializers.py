@@ -26,20 +26,20 @@ class CommentsSerializers(serializers.ModelSerializer):
 
 class GenresSerializers(serializers.ModelSerializer):
     class Meta:
-        fields = ('id', 'name', 'slug', 'titles')
+        fields = ('id', 'name', 'slug')
         model = Genre
         read_only_fields = ('id', )
 
 
 class TitlesSerializers(serializers.ModelSerializer):
     class Meta:
-        fields = ('id', 'name', 'year', 'categories')
+        fields = ('id', 'name', 'year', 'category', 'genre')
         model = Title
         read_only_fields = ('id', )
 
 
 class CatigoriesSerializers(serializers.ModelSerializer):
     class Meta:
-        fields = ('__all__',)
+        fields = ('id', 'name', 'slug')
         model = Categorie
         read_only_fields = ('id', )
