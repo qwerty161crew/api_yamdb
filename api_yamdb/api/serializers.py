@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from django.db import models
 from rest_framework.generics import get_object_or_404
-
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from reviews.models import Categorie, Title, Genre, Review, Comment
 
 
