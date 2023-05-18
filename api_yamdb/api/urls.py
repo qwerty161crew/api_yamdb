@@ -14,13 +14,14 @@ router.register(r'titles/(?P<title_id>\d+)',
                 views.TitlesViewSet, basename='titles')
 router.register(r'titles/(?P<title_id>\d+)/reviews/(?P<reviews_id>\d+)/comments/(?P<comment_id>\d+)',
                 views.CommentsViewSet, basename='comments')
-router.register(r'genres/(?P<slug>\d+)', views.GenresViewSet, basename='genres')
+
 
 router.register('categories', views.CategoriesViewSet, basename='catigories')
-router.register('genres', views.GenresViewSet, basename='genres')
+router.register('genres', views.GenresViewSet, basename='genre')
 router.register('titles', views.TitlesViewSet, basename='titles')
 router.register(r'titles/(?P<title_id>\d+)/reviews', views.ReviewsViewSet, basename='review')
 router.register('users', views.UserViewSet, basename='users')
+
 
 app_name = 'api'
 

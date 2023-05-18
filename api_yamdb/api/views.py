@@ -42,6 +42,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializers
     permission_classes = (IsAuthorOrReadOnly, IsModerator)
     pagination_class = CustomPagination
+    
 
     def get_queryset(self):
         review = get_object_or_404(Review, pk=self.kwargs.get('title_id'))
@@ -67,6 +68,7 @@ class GenresViewSet(viewsets.ModelViewSet):
     pagination_class = pagination.PageNumberPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
+    lookup_field = 'slug'
 
 
 class SignUpViewSet(generics.CreateAPIView):
