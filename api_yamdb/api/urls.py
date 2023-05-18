@@ -8,8 +8,6 @@ router = DefaultRouter()
 
 router.register(r'titles/(?P<title_id>\d+)/reviews/(?P<reviews_id>\d+)',
                 views.ReviewsViewSet, basename='reviews')
-router.register(r'titles/(?P<title_id>\d+)',
-                views.TitlesViewSet, basename='titles')
 router.register(r'titles/(?P<title_id>\d+)/reviews/(?P<reviews_id>\d+)/comments/(?P<comment_id>\d+)',
                 views.CommentsViewSet, basename='comments')
 

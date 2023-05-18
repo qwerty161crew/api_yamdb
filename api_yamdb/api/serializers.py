@@ -39,7 +39,7 @@ class TitlesSerializers(serializers.ModelSerializer):
     # genre = SlugRelatedField(slug_field='genre_id', read_only=True)
 
     class Meta:
-        fields = ('id', 'name', 'year', 'category', 'genre', 'description')
+        fields = ('name', 'year', 'category', 'genre', 'description')
         model = Title
         read_only_fields = ('id', )
 
