@@ -58,7 +58,10 @@ class CategoriesViewSet(viewsets.ModelViewSet):
     queryset = Categorie.objects.all()
     serializer_class = CatigoriesSerializers
     permission_classes = (IsAdminOrReadOnly, )
-    pagination_class = CustomPagination
+    pagination_class = pagination.PageNumberPagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ('name', )
+    lookup_field = 'slug'
 
 
 class GenresViewSet(viewsets.ModelViewSet):
@@ -67,9 +70,9 @@ class GenresViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrReadOnly, )
     pagination_class = pagination.PageNumberPagination
     filter_backends = [filters.SearchFilter]
-    search_fields = ['name']
+    search_fields = ('name', )
     lookup_field = 'slug'
-
+    
 
 class SignUpViewSet(generics.CreateAPIView):
     def get_serializer_class(self):

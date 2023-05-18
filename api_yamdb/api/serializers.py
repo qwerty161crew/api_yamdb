@@ -46,9 +46,9 @@ class TitlesSerializers(serializers.ModelSerializer):
 
 class CatigoriesSerializers(serializers.ModelSerializer):
     class Meta:
-        fields = ('id', 'name', 'slug')
+        fields = ('name', 'slug')
         model = Categorie
-        read_only_fields = ('id', )
+        # read_only_fields = ('id', )
 
 
 class UserSerializer(serializers.ModelSerializer):
