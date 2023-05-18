@@ -29,14 +29,17 @@ class CommentsSerializers(serializers.ModelSerializer):
 
 class GenresSerializers(serializers.ModelSerializer):
     class Meta:
-        fields = ('id', 'name', 'slug')
+        fields = ('name', 'slug')
         model = Genre
-        read_only_fields = ('id', )
+        # read_only_fields = ('id', )
 
 
 class TitlesSerializers(serializers.ModelSerializer):
+    # category = SlugRelatedField(slug_field='category_id', read_only=True)
+    # genre = SlugRelatedField(slug_field='genre_id', read_only=True)
+
     class Meta:
-        fields = ('id', 'name', 'year', 'category', 'genre')
+        fields = ('id', 'name', 'year', 'category', 'genre', 'description')
         model = Title
         read_only_fields = ('id', )
 

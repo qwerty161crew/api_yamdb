@@ -64,7 +64,9 @@ class GenresViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenresSerializers
     permission_classes = (IsAdminOrReadOnly, )
-    pagination_class = CustomPagination
+    pagination_class = pagination.PageNumberPagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
 
 
 class SignUpViewSet(generics.CreateAPIView):
