@@ -35,20 +35,20 @@ class TitlesViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitlesSerializers
     permission_classes = (IsAdminOrReadOnly, )
-    pagination_class = CustomPagination
+    pagination_class = pagination.PageNumberPagination
     search_fields = ('title_id', )
 
-    def perform_create(self, serializer):
-        category_id = self.kwargs.get("category_id")
-        category = get_object_or_404(Categorie, pk=category_id)
-        serializer.save(category=category)
-        return category.title.all()
+    # def perform_create(self, serializer):
+    #     category_id = self.kwargs.get("category_id")
+    #     category = get_object_or_404(Categorie, pk=category_id)
+    #     serializer.save(category=category)
+    #     return category.title.all()
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializers
     permission_classes = (IsAuthorOrReadOnly, IsModerator)
-    pagination_class = CustomPagination
+    # pagination_class = CustomPagination
 
     def get_queryset(self):
         review = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -64,7 +64,7 @@ class CategoriesViewSet(viewsets.ModelViewSet):
     queryset = Categorie.objects.all()
     serializer_class = CatigoriesSerializers
     permission_classes = (IsAdminOrReadOnly, )
-    pagination_class = pagination.PageNumberPagination
+    # pagination_class = CustomPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ('name', )
     lookup_field = 'slug'

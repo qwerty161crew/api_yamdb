@@ -64,10 +64,16 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
+    def rating(self):
+        scores = self.reviews.values_list('score', flat=True)
+        if len(scores) != 0:
+            return sum(scores) / len(scores)
+        return None
+
 
 class Review(models.Model):
     title = models.ForeignKey(
-        Title, related_name='title', on_delete=models.CASCADE)
+        Title, related_name='reviews', on_delete=models.CASCADE)
     text = models.CharField(max_length=10000)
     author = models.ForeignKey(
         User, related_name='author_reviews', on_delete=models.CASCADE)
