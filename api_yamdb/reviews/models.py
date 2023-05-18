@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
-from api_yamdb.settings import AUTH_USER_MODEL
 
 
 class User(AbstractUser):
@@ -71,7 +70,7 @@ class Review(models.Model):
         Title, related_name='title', on_delete=models.CASCADE)
     text = models.CharField(max_length=10000)
     author = models.ForeignKey(
-        User, related_name='author_review', on_delete=models.CASCADE, )
+        User, related_name='author_reviews', on_delete=models.CASCADE)
     score = models.FloatField(
         validators=[MinValueValidator(1.0), MaxValueValidator(10.0)],
         error_messages={'validators': 'Оценка от 1 до 10!'})
@@ -86,7 +85,7 @@ class Comment(models.Model):
         Review, related_name='review', on_delete=models.CASCADE)
     text = models.CharField(max_length=1000)
     author = models.ForeignKey(
-        User, related_name='author', on_delete=models.CASCADE)
+        settings.AUTH_USER_MODEL, related_name='author', on_delete=models.CASCADE)
     pud_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
