@@ -20,7 +20,7 @@ router.register('categories', views.CategoriesViewSet, basename='catigories')
 router.register('genres', views.GenresViewSet, basename='genres')
 router.register('titles', views.TitlesViewSet, basename='titles')
 router.register(r'titles/(?P<title_id>\d+)/reviews', views.ReviewsViewSet, basename='review')
-
+router.register('users', views.UserViewSet, basename='users')
 
 app_name = 'api'
 
