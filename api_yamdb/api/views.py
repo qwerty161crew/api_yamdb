@@ -1,4 +1,4 @@
-from rest_framework import filters, mixins, viewsets, pagination
+from rest_framework import filters, mixins, viewsets, pagination, generics
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly, IsAdminUser)
 from django.shortcuts import get_object_or_404
