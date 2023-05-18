@@ -1,10 +1,12 @@
-from rest_framework import viewsets
-from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModerator
+from rest_framework import filters, mixins, viewsets, pagination
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly, IsAdminUser)
 from django.shortcuts import get_object_or_404
-from .serializers import ReviewsSerializers, TitlesSerializers, CommentsSerializers, CatigoriesSerializers, GenresSerializers
+from .permissions import IsAuthorOrReadOnly, IsModerator, IsAdminOrReadOnly
 from .pagination import CustomPagination
+from .serializers import ReviewsSerializers, TitlesSerializers, CommentsSerializers, CatigoriesSerializers, GenresSerializers
+
 from reviews.models import Review, Title, Comment, Categorie, Genre
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):

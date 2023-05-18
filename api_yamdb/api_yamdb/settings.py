@@ -21,10 +21,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'api',
+    'rest_framework_simplejwt',
     'reviews',
-    'import_export',
-    
     
 ]
 
@@ -108,9 +106,3 @@ STATIC_URL = '/static/'
 # STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 AUTH_USER_MODEL = 'reviews.User'
-
-
-REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'api.pagination.CustomPagination',
-    # 'PAGE_SIZE': 10
-}

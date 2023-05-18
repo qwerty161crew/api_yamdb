@@ -85,7 +85,7 @@ class Comment(models.Model):
         Review, related_name='review', on_delete=models.CASCADE)
     text = models.CharField(max_length=1000)
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='author', on_delete=models.CASCADE)
+        User, related_name='author', on_delete=models.CASCADE)
     pud_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
