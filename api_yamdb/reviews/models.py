@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
-from django.conf import settings
 
 
 class User(AbstractUser):
@@ -13,7 +12,8 @@ class User(AbstractUser):
 
     ROLE_CHOICES = [
         (ROLE_ANONYMOUS, 'Аноним'),
-        (ROLE_AUTHENTICATED, 'Аутентифицированный пользователь'),
+        (ROLE_AUTHENTICATED,
+         'Аутентифицированный пользователь'),
         (ROLE_MODERATOR, 'Модератор'),
         (ROLE_ADMIN, 'Администратор'),
     ]
@@ -34,54 +34,58 @@ class User(AbstractUser):
         super().save(*args, **kwargs)
 
 
-class Categories(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique=True)
+class Categorie(models.Model):
+    name = models.CharField(max_length=256)
+    slug = models.SlugField(max_length=50, unique=True)
 
     def __str__(self):
         return self.name
 
 
-class Titles(models.Model):
-    name = models.CharField(max_length=200)
-    year = models.IntegerField()
-    categories = models.ForeignKey(
-        Categories, related_name='categories', on_delete=models.DO_NOTHING)
+class Genre(models.Model):
+    name = models.CharField(max_length=256)
+    slug = models.SlugField(max_length=50, unique=True)
 
     def __str__(self):
         return self.name
 
 
-class Genres(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique=True)
-    titles = models.ManyToManyField(
-        Titles, related_name='titles')
+class Title(models.Model):
+    name = models.CharField(max_length=256)
+    year = models.PositiveIntegerField(
+    )
+    category = models.ForeignKey(
+        Categorie, related_name='categories', on_delete=models.DO_NOTHING, null=True)
+    genre = models.ManyToManyField(
+        Genre, related_name='genre', blank=True)
+    description = models.TextField(
+        null=True, blank=True, verbose_name="Описание")
 
     def __str__(self):
-        return self.titles
+        return self.name
 
 
-class Reviews(models.Model):
+class Review(models.Model):
     title = models.ForeignKey(
-        Titles, related_name='title', on_delete=models.CASCADE)
+        Title, related_name='title', on_delete=models.CASCADE)
     text = models.CharField(max_length=10000)
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='author_reviews', on_delete=models.CASCADE)
+        User, related_name='author_reviews', on_delete=models.CASCADE)
     score = models.FloatField(
-        validators=[MinValueValidator(1.0), MaxValueValidator(5.0)])
+        validators=[MinValueValidator(1.0), MaxValueValidator(10.0)],
+        error_messages={'validators': 'Оценка от 1 до 10!'})
     pud_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.text
 
 
-class Comments(models.Model):
+class Comment(models.Model):
     review = models.ForeignKey(
-        Reviews, related_name='reviews', on_delete=models.CASCADE)
+        Review, related_name='review', on_delete=models.CASCADE)
     text = models.CharField(max_length=1000)
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='author', on_delete=models.CASCADE)
+        User, related_name='author', on_delete=models.CASCADE)
     pud_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
