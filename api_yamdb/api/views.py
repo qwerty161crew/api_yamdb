@@ -38,11 +38,11 @@ class TitlesViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
     search_fields = ('title_id', )
 
-    def perform_create(self, serializer):
-        category_id = self.kwargs.get("category_id")
-        category = get_object_or_404(Categorie, pk=category_id)
-        serializer.save(category=category)
-        return category.title.all()
+    # def perform_create(self, serializer):
+    #     category_id = self.kwargs.get("category_id")
+    #     category = get_object_or_404(Categorie, pk=category_id)
+    #     serializer.save(category=category)
+    #     return category.title.all()
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
@@ -60,11 +60,11 @@ class CommentsViewSet(viewsets.ModelViewSet):
                             Title, pk=self.kwargs.get('title_id')))
 
 
-class CategoriesViewSet(viewsets.ModelViewSet):
+class CategoriesViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Categorie.objects.all()
     serializer_class = CatigoriesSerializers
     permission_classes = (IsAdminOrReadOnly, )
-    pagination_class = pagination.PageNumberPagination
+    pagination_class = CustomPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ('name', )
     lookup_field = 'slug'
@@ -74,7 +74,7 @@ class GenresViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenresSerializers
     permission_classes = (IsAdminOrReadOnly, )
-    pagination_class = pagination.PageNumberPagination
+    pagination_class = CustomPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ('name', )
     lookup_field = 'slug'
@@ -111,7 +111,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -120,7 +121,8 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_current_user(self, request):
         if request.user.is_authenticated:
             if request.method == 'PATCH':
-                serializer = self.get_serializer(data=request.data, instance=request.user, partial=True)
+                serializer = self.get_serializer(
+                    data=request.data, instance=request.user, partial=True)
                 if serializer.is_valid():
                     serializer.save()
                     return Response(serializer.data)
@@ -128,7 +130,7 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(request.user)
             return Response(serializer.data)
         return Response({'detail': 'Not authenticated.'}, status=status.HTTP_403_FORBIDDEN)
-    
+
     def get_allowed_methods(self, detail=None):
         if self.action == 'get_current_user':
             return ['GET', 'PATCH', 'HEAD', 'OPTIONS']

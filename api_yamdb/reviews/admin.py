@@ -1,5 +1,5 @@
 from django.contrib import admin
-from reviews.models import User, Review
+from .models import User, Review
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 

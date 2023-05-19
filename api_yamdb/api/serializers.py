@@ -13,7 +13,7 @@ class ReviewsSerializers(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
 
     class Meta:
-        fields = ('__all__', )
+        fields = ('title', 'text', 'author',  'score', 'pud_date' )
         model = Review
         read_only_fields = ('id', 'author', 'pub_date')
 
@@ -35,13 +35,19 @@ class GenresSerializers(serializers.ModelSerializer):
 
 
 class TitlesSerializers(serializers.ModelSerializer):
-    # category = SlugRelatedField(slug_field='category_id', read_only=True)
-    # genre = SlugRelatedField(slug_field='genre_id', read_only=True)
-
+    name = serializers.CharField(
+        validators=[
+            MaxLengthValidator(256),
+        ]
+    )
+    category = SlugRelatedField(many=False, slug_field='slug', queryset=Categorie.objects.all(), required=True)
+    genre = serializers.SlugRelatedField(many=True, slug_field='slug', queryset=Genre.objects.all(), required=True)
+    rating = serializers.FloatField(required=False)
+    
     class Meta:
-        fields = ('name', 'year', 'category', 'genre', 'description')
+        fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category')
         model = Title
-        read_only_fields = ('id', )
+        read_only_fields = ('id', 'rating')
 
 
 class CatigoriesSerializers(serializers.ModelSerializer):
