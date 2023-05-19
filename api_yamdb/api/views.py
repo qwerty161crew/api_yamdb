@@ -2,7 +2,7 @@ from rest_framework import filters, mixins, viewsets, pagination, generics
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly, IsAdminUser)
 from django.shortcuts import get_object_or_404
-from .permissions import IsAuthorOrReadOnly, IsModerator, IsAdminOrReadOnly
+from .permissions import IsAuthorOrReadOnly, IsModerator, IsAdminOrReadOnly, IsSelfOrAdmin
 from .pagination import CustomPagination
 
 from reviews.models import Review, Title, Comment, Categorie, Genre, User
@@ -35,7 +35,7 @@ class TitlesViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitlesSerializers
     permission_classes = (IsAdminOrReadOnly, )
-    pagination_class = pagination.PageNumberPagination
+    pagination_class = CustomPagination
     search_fields = ('title_id', )
 
     # def perform_create(self, serializer):
@@ -48,7 +48,7 @@ class TitlesViewSet(viewsets.ModelViewSet):
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializers
     permission_classes = (IsAuthorOrReadOnly, IsModerator)
-    # pagination_class = CustomPagination
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         review = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -60,11 +60,11 @@ class CommentsViewSet(viewsets.ModelViewSet):
                             Title, pk=self.kwargs.get('title_id')))
 
 
-class CategoriesViewSet(viewsets.ModelViewSet):
+class CategoriesViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Categorie.objects.all()
     serializer_class = CatigoriesSerializers
     permission_classes = (IsAdminOrReadOnly, )
-    # pagination_class = CustomPagination
+    pagination_class = CustomPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ('name', )
     lookup_field = 'slug'
@@ -74,7 +74,7 @@ class GenresViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenresSerializers
     permission_classes = (IsAdminOrReadOnly, )
-    pagination_class = pagination.PageNumberPagination
+    pagination_class = CustomPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ('name', )
     lookup_field = 'slug'
@@ -91,17 +91,47 @@ class SignUpViewSet(generics.CreateAPIView):
         if serializer.is_valid():
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
-            return Response({'message': 'Пользователь успешно создан!'}, status=status.HTTP_201_CREATED, headers=headers)
+            return Response({'email': serializer.validated_data['email'], 'username': serializer.validated_data['username']}, status=status.HTTP_200_OK, headers=headers)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = (IsSelfOrAdmin,)
     search_fields = ('username', )
     lookup_field = 'username'
 
-    @action(detail=False, methods=['get'], url_path='me')
-    def get_current_user(self, request):
-        serializer = self.get_serializer(request.user)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get', 'patch'], url_path='me')
+    def get_current_user(self, request):
+        if request.user.is_authenticated:
+            if request.method == 'PATCH':
+                serializer = self.get_serializer(
+                    data=request.data, instance=request.user, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data)
+        return Response({'detail': 'Not authenticated.'}, status=status.HTTP_403_FORBIDDEN)
+
+    def get_allowed_methods(self, detail=None):
+        if self.action == 'get_current_user':
+            return ['GET', 'PATCH', 'HEAD', 'OPTIONS']
+        return super().get_allowed_methods(detail=detail)

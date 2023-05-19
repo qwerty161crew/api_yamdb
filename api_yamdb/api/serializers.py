@@ -13,7 +13,7 @@ class ReviewsSerializers(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
 
     class Meta:
-        fields = ('__all__', )
+        fields = ('title', 'text', 'author',  'score', 'pud_date' )
         model = Review
         read_only_fields = ('id', 'author', 'pub_date')
 
@@ -61,14 +61,14 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[
             UniqueValidator(queryset=User.objects.all()),
-            MaxLengthValidator(254),
+            # MaxLengthValidator(254),
             EmailValidator()
         ]
     )
     username = serializers.CharField(
         validators=[
             UniqueValidator(queryset=User.objects.all()),
-            MaxLengthValidator(150),
+            # MaxLengthValidator(150),
             RegexValidator(r'^[\w.@+-]+\Z'),
         ]
     )
@@ -76,8 +76,14 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'role', 'bio', 'first_name', 'last_name')
+        read_only_fields = ('id', 'role')
     
     def validate_username(self, value):
-        if value.lower() == 'me':
-            raise serializers.ValidationError('Использовать имя "me" в качестве username запрещено.')
+        if value.lower() == 'me' or len(value) > 150:
+            raise serializers.ValidationError('Использовать "me" запрещено, и длина имени не должны превышать 150 символов.')
+        return value
+    
+    def validate_email(self, value):
+        if len(value) > 254:
+            raise serializers.ValidationError('Email не должен быть длиннее 254 символов.')
         return value
