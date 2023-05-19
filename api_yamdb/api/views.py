@@ -70,7 +70,7 @@ class CategoriesViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.D
     lookup_field = 'slug'
 
 
-class GenresViewSet(viewsets.ModelViewSet):
+class GenresViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenresSerializers
     permission_classes = (IsAdminOrReadOnly, )

@@ -33,6 +33,11 @@ class GenresSerializers(serializers.ModelSerializer):
         model = Genre
         # read_only_fields = ('id', )
 
+class CatigoriesSerializers(serializers.ModelSerializer):
+    class Meta:
+        fields = ('name', 'slug')
+        model = Categorie
+        # read_only_fields = ('id', )
 
 class TitlesSerializers(serializers.ModelSerializer):
     name = serializers.CharField(
@@ -40,21 +45,14 @@ class TitlesSerializers(serializers.ModelSerializer):
             MaxLengthValidator(256),
         ]
     )
-    category = SlugRelatedField(many=False, slug_field='slug', queryset=Categorie.objects.all(), required=True)
-    genre = serializers.SlugRelatedField(many=True, slug_field='slug', queryset=Genre.objects.all(), required=True)
+    category = CatigoriesSerializers(read_only=True)
+    genre = GenresSerializers(many=True, read_only=True)
     rating = serializers.FloatField(required=False)
     
     class Meta:
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category')
         model = Title
         read_only_fields = ('id', 'rating')
-
-
-class CatigoriesSerializers(serializers.ModelSerializer):
-    class Meta:
-        fields = ('name', 'slug')
-        model = Categorie
-        # read_only_fields = ('id', )
 
 
 class UserSerializer(serializers.ModelSerializer):
