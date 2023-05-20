@@ -36,11 +36,11 @@ class CatigoriesSerializers(serializers.ModelSerializer):
         # read_only_fields = ('id', )
 
 class TitlesSerializers(serializers.ModelSerializer):
-    name = serializers.CharField(
-        validators=[
-            MaxLengthValidator(256),
-        ]
-    )
+    # name = serializers.CharField(
+    #     validators=[
+    #         MaxLengthValidator(256),
+    #     ]
+    # )
     category = CatigoriesSerializers(many=False, read_only=True)
     genre = GenresSerializers(many=True, read_only=True)
     rating = serializers.FloatField(required=False)
@@ -49,6 +49,20 @@ class TitlesSerializers(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category')
         model = Title
         read_only_fields = ('id', 'rating')
+
+class TitleWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания произведений."""
+
+    category = serializers.SlugRelatedField(
+        queryset=Categorie.objects.all(), slug_field="slug"
+    )
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(), slug_field="slug", many=True
+    )
+
+    class Meta:
+        fields = ("id", "name", "description", "year", "category", "genre")
+        model = Title
 
 
 class UserSerializer(serializers.ModelSerializer):

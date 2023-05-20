@@ -10,7 +10,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from .serializers import ReviewsSerializers, TitlesSerializers, CommentsSerializers, CatigoriesSerializers, GenresSerializers, UserSerializer
+from .serializers import ReviewsSerializers, TitlesSerializers, CommentsSerializers, CatigoriesSerializers, GenresSerializers, UserSerializer, TitleWriteSerializer
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
@@ -38,11 +38,10 @@ class TitlesViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
     search_fields = ('title_id', )
 
-    # def perform_create(self, serializer):
-    #     category_id = self.kwargs.get("category_id")
-    #     category = get_object_or_404(Categorie, pk=category_id)
-    #     serializer.save(category=category)
-    #     return category.title.all()
+    def get_serializer_class(self):
+        if self.action in ("list", "retrieve"):
+            return TitlesSerializers
+        return TitleWriteSerializer
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
