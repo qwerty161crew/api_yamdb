@@ -4,7 +4,7 @@ from rest_framework.permissions import (IsAuthenticated,
 from django.shortcuts import get_object_or_404
 from .permissions import IsAuthorOrReadOnly, IsModerator, IsAdminOrReadOnly, IsSelfOrAdmin
 from .pagination import CustomPagination
-
+from .filters import TitleFilter
 from reviews.models import Review, Title, Comment, Categorie, Genre, User
 from rest_framework import status
 from rest_framework.response import Response
@@ -35,6 +35,7 @@ class TitlesViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitlesSerializers
     permission_classes = (IsAdminOrReadOnly, )
+    filterset_class = TitleFilter
     pagination_class = CustomPagination
     search_fields = ('title_id', )
 
