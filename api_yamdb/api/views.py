@@ -6,10 +6,11 @@ from .permissions import IsAuthorOrReadOnly, IsModerator, IsAdminOrReadOnly, IsS
 from .pagination import CustomPagination
 from .filters import TitleFilter
 from reviews.models import Review, Title, Comment, Categorie, Genre, User
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-
+from django.db.models import Avg
 from .serializers import ReviewsSerializers, TitlesSerializers, CommentsSerializers, CatigoriesSerializers, GenresSerializers, UserSerializer, TitleWriteSerializer
 
 
@@ -33,8 +34,8 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 class TitlesViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitlesSerializers
     permission_classes = (IsAdminOrReadOnly, )
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filterset_class = TitleFilter
     pagination_class = CustomPagination
     search_fields = ('title_id', )

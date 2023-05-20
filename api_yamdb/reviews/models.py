@@ -64,11 +64,11 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
-    def rating(self):
-        scores = self.reviews.values_list('score', flat=True)
-        if len(scores) != 0:
-            return sum(scores) / len(scores)
-        return None
+    # def rating(self):
+    #     scores = self.reviews.values_list('score', flat=True)
+    #     if len(scores) != 0:
+    #         return sum(scores) / len(scores)
+    #     return None
 
 
 class Review(models.Model):

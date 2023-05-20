@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from reviews.models import Categorie, Title, Genre, Review, Comment
 from rest_framework.validators import UniqueValidator
-from django.core.validators import RegexValidator, EmailValidator, MaxLengthValidator
+from django.core.validators import RegexValidator, EmailValidator
 from reviews.models import Categorie, Title, Genre, Review, Comment, User
 
 class ReviewsSerializers(serializers.ModelSerializer):
@@ -33,22 +33,17 @@ class CatigoriesSerializers(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
         model = Categorie
-        # read_only_fields = ('id', )
+
 
 class TitlesSerializers(serializers.ModelSerializer):
-    # name = serializers.CharField(
-    #     validators=[
-    #         MaxLengthValidator(256),
-    #     ]
-    # )
     category = CatigoriesSerializers(many=False, read_only=True)
     genre = GenresSerializers(many=True, read_only=True)
     rating = serializers.FloatField(required=False)
-    
+    # rating = serializers.IntegerField(source='reviews__score__avg', read_only=True)
     class Meta:
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category')
         model = Title
-        read_only_fields = ('id', 'rating')
+
 
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для создания произведений."""

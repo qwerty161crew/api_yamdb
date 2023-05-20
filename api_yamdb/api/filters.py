@@ -1,31 +1,19 @@
-from django_filters import rest_framework as filters
-
+from django_filters import rest_framework as filter_
 from reviews.models import Title
 
 
-class CharFilterInFilter(filters.BaseInFilter, filters.CharFilter):
-    pass
-
-
-class TitleFilter(filters.FilterSet):
-    """
-    Кастомный фильтр для модели Произведений
-    для поиска жанра по слагу.
-    """
-
-    genre = CharFilterInFilter(
-        field_name='genre__slug', lookup_expr='in'
+class TitleFilter(filter_.FilterSet):
+    genre = filter_.CharFilter(
+        field_name='genre__slug',
+        lookup_expr='exact'
     )
-    category = CharFilterInFilter(
-        field_name='categories__slug', lookup_expr='in'
+    category = filter_.CharFilter(
+        field_name='category__slug',
+        lookup_expr='exact'
     )
-    year = filters.NumberFilter(
-        field_name='year',
-    )
-    name = CharFilterInFilter(
-        field_name='name', lookup_expr='in'
-    )
+    name = filter_.CharFilter()
+    year = filter_.CharFilter()
 
     class Meta:
         model = Title
-        fields = ['genre', 'category', 'year', 'name']
+        fields = ('genre', 'category', 'name', 'year')
