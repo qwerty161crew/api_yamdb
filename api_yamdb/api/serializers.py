@@ -1,12 +1,8 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from django.db import models
-from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from reviews.models import Categorie, Title, Genre, Review, Comment
 from rest_framework.validators import UniqueValidator
 from django.core.validators import RegexValidator, EmailValidator, MaxLengthValidator
-
 from reviews.models import Categorie, Title, Genre, Review, Comment, User
 
 class ReviewsSerializers(serializers.ModelSerializer):
@@ -45,7 +41,7 @@ class TitlesSerializers(serializers.ModelSerializer):
             MaxLengthValidator(256),
         ]
     )
-    category = CatigoriesSerializers(read_only=True)
+    category = CatigoriesSerializers(many=False, read_only=True)
     genre = GenresSerializers(many=True, read_only=True)
     rating = serializers.FloatField(required=False)
     

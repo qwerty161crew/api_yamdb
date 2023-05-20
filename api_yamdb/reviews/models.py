@@ -55,7 +55,7 @@ class Title(models.Model):
     year = models.PositiveIntegerField(
     )
     category = models.ForeignKey(
-        Categorie, related_name='categories', on_delete=models.DO_NOTHING, null=True)
+        Categorie, related_name='categories', on_delete=models.DO_NOTHING, null=True, blank=True)
     genre = models.ManyToManyField(
         Genre, related_name='genre', blank=True)
     description = models.TextField(
