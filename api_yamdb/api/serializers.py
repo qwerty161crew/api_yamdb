@@ -6,28 +6,45 @@ from django.core.validators import RegexValidator, EmailValidator
 from reviews.models import Categorie, Title, Genre, Review, Comment, User
 
 class ReviewsSerializers(serializers.ModelSerializer):
-    author = SlugRelatedField(slug_field='username', read_only=True)
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+    title = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
-        fields = ('title', 'text', 'author',  'score', 'pud_date' )
         model = Review
-        read_only_fields = ('id', 'author', 'pub_date')
+        fields = '__all__'
+
+    def validate(self, data):
+        if self.context['request'].method != 'POST':
+            return data
+        if Review.objects.filter(
+            author=self.context['request'].user,
+            title__id=self.context['view'].kwargs.get('title_id')
+        ).exists():
+            raise serializers.ValidationError(
+                'Отзыв можно оставить единожды'
+            )
+        return data
 
 
 class CommentsSerializers(serializers.ModelSerializer):
-    author = SlugRelatedField(slug_field='username', read_only=True)
+    author = serializers.SlugRelatedField(
+        slug_field='username', read_only=True
+    )
+    review = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
-        fields = ('__all__', )
         model = Comment
-        read_only_fields = ('id', 'author', 'pub_date')
+        fields = '__all__'
 
 
 class GenresSerializers(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
         model = Genre
-        # read_only_fields = ('id', )
+
 
 class CatigoriesSerializers(serializers.ModelSerializer):
     class Meta:
@@ -39,7 +56,6 @@ class TitlesSerializers(serializers.ModelSerializer):
     category = CatigoriesSerializers(many=False, read_only=True)
     genre = GenresSerializers(many=True, read_only=True)
     rating = serializers.FloatField(required=False)
-    # rating = serializers.IntegerField(source='reviews__score__avg', read_only=True)
     class Meta:
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category')
         model = Title

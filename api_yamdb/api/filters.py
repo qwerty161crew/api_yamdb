@@ -1,5 +1,6 @@
 from django_filters import rest_framework as filter_
 from reviews.models import Title
+from rest_framework import exceptions
 
 
 class TitleFilter(filter_.FilterSet):
@@ -13,7 +14,7 @@ class TitleFilter(filter_.FilterSet):
     )
     name = filter_.CharFilter()
     year = filter_.CharFilter()
-
+    exceptions.AuthenticationFailed
     class Meta:
         model = Title
         fields = ('genre', 'category', 'name', 'year')
