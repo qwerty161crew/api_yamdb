@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('reviews', '0001_initial'),
     ]
@@ -18,6 +17,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='genres',
             name='titles',
-            field=models.ManyToManyField(null=True, related_name='titles', to='reviews.Titles'),
+            field=models.ManyToManyField(
+                null=True, related_name='titles', to='reviews.Titles'
+            ),
         ),
     ]
