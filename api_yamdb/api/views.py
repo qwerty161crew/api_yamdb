@@ -4,14 +4,18 @@ from rest_framework.permissions import (IsAuthenticated,
 from django.shortcuts import get_object_or_404
 from .permissions import IsAuthorOrReadOnly, IsModerator, IsAdminOrReadOnly, IsSelfOrAdmin, IsOwnerOrReadOnly
 from .pagination import CustomPagination
-from .filters import TitleFilter
+
 from reviews.models import Review, Title, Comment, Categorie, Genre, User
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.db.models import Avg
-from .serializers import ReviewsSerializers, TitlesSerializers, CommentsSerializers, CatigoriesSerializers, GenresSerializers, UserSerializer, TitleWriteSerializer
+from django.core.mail import send_mail
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.exceptions import MethodNotAllowed, ValidationError, NotFound
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import TitleFilter
+
+from .serializers import ReviewsSerializers, TitlesSerializers, CommentsSerializers, CatigoriesSerializers, GenresSerializers, UserSerializer, MyTokenObtainPairSerializer, TitleWriteSerializer
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
@@ -82,41 +86,76 @@ class GenresViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Destr
 
 
 class SignUpViewSet(generics.CreateAPIView):
-    def get_serializer_class(self):
-        if self.request.method in ['POST']:
-            return UserSerializer
-        return super().get_serializer_class()
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            self.perform_create(serializer)
-            headers = self.get_success_headers(serializer.data)
-            return Response({'email': serializer.validated_data['email'], 'username': serializer.validated_data['username']}, status=status.HTTP_200_OK, headers=headers)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsSelfOrAdmin,)
-    search_fields = ('username', )
-    lookup_field = 'username'
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        username = request.data.get('username')
+        email = request.data.get('email')
+    
+        if User.objects.filter(username=username).exists():
+            user = User.objects.get(username=username)
+            if user.email != email:
+                return Response(
+                    {'detail': 'A user with this username already exists with different email.'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            confirmation_code = user.generate_confirmation_code()
+            user.save()
+            send_mail(
+                'Код подтверждения.',
+                f'Ваш код подтверждения: {confirmation_code}',
+                'from@example.com',
+                [user.email],
+                fail_silently=False,
+            )
+            return Response(
+                {'email': user.email, 'username': user.username}, 
+                status=status.HTTP_200_OK
+            )
+        else:
+            serializer = self.get_serializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                user = User.objects.create(
+                    email=serializer.validated_data['email'], 
+                    username=serializer.validated_data['username']
+                )
+                confirmation_code = user.generate_confirmation_code()
+                user.save()
+                send_mail(
+                    'Код подтверждения.',
+                    f'Ваш код подтверждения: {confirmation_code}',
+                    'from@example.com',
+                    [user.email],
+                    fail_silently=False,
+                )
+                return Response(
+                    {'email': serializer.validated_data['email'], 'username': serializer.validated_data['username']}, 
+                    status=status.HTTP_200_OK
+                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def partial_update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        confirmation_code = request.data.get('confirmation_code')
+        if not username:
+            return Response({'detail': 'Пожалуйста, предоставьте имя пользователя.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({'detail': 'Пользователь с таким username не найден.'},
+                            status=status.HTTP_404_NOT_FOUND)
+        if not confirmation_code:
+            return Response({'detail': 'Пожалуйста, предоставьте confirmation code.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if user.confirmation_code != confirmation_code:
+            return Response({'detail': 'Неверный confirmation code.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return super().post(request, *args, **kwargs)
 
     @action(detail=False, methods=['get', 'patch'], url_path='me')
     def get_current_user(self, request):
@@ -136,3 +175,41 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action == 'get_current_user':
             return ['GET', 'PATCH', 'HEAD', 'OPTIONS']
         return super().get_allowed_methods(detail=detail)
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsSelfOrAdmin,)
+    pagination_class = CustomPagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ('username', )
+    lookup_field = 'username'
+
+    def create(self, request, *args, **kwargs):
+        self.check_permissions(request)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        if not kwargs.get('partial', False):
+            raise MethodNotAllowed('PUT')
+        return super().update(request, *args, **kwargs)
+
+    @action(detail=False, methods=['get', 'patch', 'delete'], url_path='me')
+    def get_current_user(self, request):
+        if request.method == 'DELETE':
+            raise MethodNotAllowed('DELETE')
+        if request.user.is_authenticated:
+            if request.method == 'PATCH':
+                serializer = self.get_serializer(
+                    data=request.data, instance=request.user, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data)
+        return Response({'detail': 'Пользователь не авторизован.'}, status=status.HTTP_401_UNAUTHORIZED)

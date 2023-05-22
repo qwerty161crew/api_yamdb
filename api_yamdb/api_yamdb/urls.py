@@ -1,10 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-)
-from api.views import SignUpViewSet
+from api.views import MyTokenObtainPairView, SignUpViewSet
 
 
 urlpatterns = [
@@ -14,7 +11,7 @@ urlpatterns = [
         TemplateView.as_view(template_name='redoc.html'),
         name='redoc'
     ),
-    path('api/v1/auth/signup/', SignUpViewSet),
-    path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/v1/auth/signup/', SignUpViewSet.as_view(), name='signup'),
+    path('api/v1/auth/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/', include('api.urls'), name='api'),
 ]

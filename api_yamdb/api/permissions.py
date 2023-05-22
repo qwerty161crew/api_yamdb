@@ -28,15 +28,12 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
 
 class IsSelfOrAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
-        is_authenticated = request.user and request.user.is_authenticated
-        is_staff = is_authenticated and request.user.is_staff
+        is_staff = request.user.is_authenticated and request.user.role == 'admin'
         is_self = view.action == 'get_current_user'
         return is_self or is_staff
 
     def has_object_permission(self, request, view, obj):
-        is_authenticated = request.user and request.user.is_authenticated
-        is_staff = is_authenticated and request.user.is_staff
-        return is_staff
+        return request.user.is_authenticated and request.user.role == 'admin'
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):

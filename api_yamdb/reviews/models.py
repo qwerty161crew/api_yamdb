@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
+from django.db.models import UniqueConstraint
+import secrets
 
 
 class User(AbstractUser):
@@ -27,11 +29,17 @@ class User(AbstractUser):
         'Биография',
         blank=True,
     )
+    confirmation_code = models.CharField(max_length=12, null=True, blank=True)
+
+    def generate_confirmation_code(self):
+        self.confirmation_code = secrets.token_hex(6)
+        self.save()
 
     def save(self, *args, **kwargs):
         if self.is_superuser:
             self.role = self.ROLE_ADMIN
         super().save(*args, **kwargs)
+
 
 
 class Categorie(models.Model):
@@ -64,14 +72,15 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
-    # def rating(self):
-    #     scores = self.reviews.values_list('score', flat=True)
-    #     if len(scores) != 0:
-    #         return sum(scores) / len(scores)
-    #     return None
+    def rating(self):
+        scores = self.reviews.values_list('score', flat=True)
+        if len(scores) != 0:
+            return sum(scores) / len(scores)
+        return None
 
 
 class Review(models.Model):
+    text = models.TextField()
     title = models.ForeignKey(
         Title, related_name='reviews', on_delete=models.CASCADE)
     text = models.CharField(max_length=10000)
@@ -80,7 +89,15 @@ class Review(models.Model):
     score = models.FloatField(
         validators=[MinValueValidator(1.0), MaxValueValidator(10.0)],
         error_messages={'validators': 'Оценка от 1 до 10!'})
-    pud_date = models.DateTimeField(auto_now_add=True)
+    pub_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_review'
+            )
+        ]
 
     def __str__(self):
         return self.text
@@ -88,11 +105,11 @@ class Review(models.Model):
 
 class Comment(models.Model):
     review = models.ForeignKey(
-        Review, related_name='review', on_delete=models.CASCADE)
+        Review, related_name='comment', on_delete=models.CASCADE)
     text = models.CharField(max_length=1000)
     author = models.ForeignKey(
         User, related_name='author', on_delete=models.CASCADE)
-    pud_date = models.DateTimeField(auto_now_add=True)
+    pub_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.text
+        return self.tex

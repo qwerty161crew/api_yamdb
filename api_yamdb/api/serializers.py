@@ -1,9 +1,20 @@
-from rest_framework import serializers
+from rest_framework import serializers, exceptions
 from rest_framework.relations import SlugRelatedField
 from reviews.models import Categorie, Title, Genre, Review, Comment
 from rest_framework.validators import UniqueValidator
-from django.core.validators import RegexValidator, EmailValidator
+from django.core.validators import RegexValidator, EmailValidator, MaxLengthValidator
 from reviews.models import Categorie, Title, Genre, Review, Comment, User
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.core.cache import cache
+from rest_framework.response import Response
+from django.core.exceptions import ObjectDoesNotExist
+from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth import get_user_model
+from rest_framework import exceptions
+from django.contrib.auth.models import update_last_login
+from rest_framework_simplejwt.state import api_settings
+from rest_framework import status
 
 class ReviewsSerializers(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
@@ -77,18 +88,28 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         model = Title
 
 
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        username = attrs.get('username')
+        confirmation_code = attrs.get('confirmation_code')
+        if not username:
+            raise exceptions.ValidationError({'username': 'Пожалуйста, предоставьте имя пользователя.'})
+        if not confirmation_code:
+            return Response({'detail': 'Пожалуйста, предоставьте confirmation code.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return super().validate(attrs)
+
+
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[
             UniqueValidator(queryset=User.objects.all()),
-            # MaxLengthValidator(254),
             EmailValidator()
         ]
     )
     username = serializers.CharField(
         validators=[
             UniqueValidator(queryset=User.objects.all()),
-            # MaxLengthValidator(150),
             RegexValidator(r'^[\w.@+-]+\Z'),
         ]
     )
@@ -96,7 +117,17 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'role', 'bio', 'first_name', 'last_name')
-        read_only_fields = ('id', 'role')
+        read_only_fields = ('id',)
+    
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret.pop('id')
+        return ret
+    
+    def update(self, instance, validated_data):
+        if 'role' in validated_data and self.context['request'].path == '/api/v1/users/me/':
+            validated_data.pop('role')
+        return super().update(instance, validated_data)
     
     def validate_username(self, value):
         if value.lower() == 'me' or len(value) > 150:
