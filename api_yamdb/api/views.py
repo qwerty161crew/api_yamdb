@@ -1,5 +1,6 @@
 from typing import Any, Optional, Union
 
+from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models.query import QuerySet
 from django.http import HttpResponse
@@ -13,13 +14,12 @@ from rest_framework import (
     status,
     viewsets,
 )
-from django.conf import settings
 from rest_framework.decorators import action
 from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.permissions import IsAuthenticated
 
 from reviews.models import Categorie, Comment, Genre, Review, Title, User
 
@@ -129,19 +129,23 @@ class SignUpViewSet(generics.CreateAPIView):
         *args: Any,
         **kwargs: Any,
     ) -> Response:
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        username = request.data.get('username')
+        email = request.data.get('email')
 
-        username = serializer.validated_data['username']
-        email = serializer.validated_data['email']
+        try:
+            user = User.objects.get(username=username, email=email)
+            confirmation_code = user.generate_confirmation_code()
+            user.save()
+        except User.DoesNotExist:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = User.objects.create(username=username, email=email)
+            confirmation_code = user.generate_confirmation_code()
+            user.save()
 
-        user, _ = User.objects.get_or_create(username=username, email=email)
-
-        confirmation_code = user.generate_confirmation_code()
-        user.save()
         send_mail(
-            settings.EMAIL_SUBJECT,
-            settings.EMAIL_BODY.format(confirmation_code),
+            'Код подверждения.',
+            f'Ваш код подверждения: {confirmation_code}',
             settings.EMAIL_FROM,
             [user.email],
             fail_silently=False,
@@ -202,16 +206,12 @@ class MyTokenObtainPairView(TokenObtainPairView):
                 instance=request.user,
                 partial=True,
             )
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
-    
+
     def get_permissions(self) -> list:
         if self.request.method == 'PATCH':
             return (IsAuthenticated(),)
@@ -272,14 +272,11 @@ class UserViewSet(viewsets.ModelViewSet):
                     data=request.data,
                     instance=request.user,
                     partial=True,
+                    context={'change_self': True},
                 )
-                if serializer.is_valid():
-                    serializer.save()
-                    return Response(serializer.data)
-                return Response(
-                    serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                return Response(serializer.data)
             serializer = self.get_serializer(request.user)
             return Response(serializer.data)
         return Response(

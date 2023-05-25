@@ -13,7 +13,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     ) -> bool:
         if request.method in permissions.SAFE_METHODS:
             return True
-        if request.user.is_authenticated and request.user.role == 'admin':
+        if request.user.is_authenticated and request.user.is_admin:
             return True
         return False
 
@@ -27,7 +27,7 @@ class IsModerator(permissions.BasePermission):
     ) -> bool:
         if request.method in permissions.SAFE_METHODS:
             return True
-        if request.user.role == 'moderator':
+        if request.user.is_moderator:
             return True
 
 
@@ -50,9 +50,7 @@ class IsSelfOrAdmin(permissions.BasePermission):
         request: Request,
         view: Type[View],
     ) -> bool:
-        is_staff = (
-            request.user.is_authenticated and request.user.role == 'admin'
-        )
+        is_staff = request.user.is_authenticated and request.user.is_admin
         is_self = view.action == 'get_current_user'
         return is_self or is_staff
 
@@ -62,7 +60,7 @@ class IsSelfOrAdmin(permissions.BasePermission):
         view: Type[View],
         obj: Any,
     ) -> bool:
-        return request.user.is_authenticated and request.user.role == 'admin'
+        return request.user.is_authenticated and request.user.is_admin
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -85,6 +83,6 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         return (
             request.method in permissions.SAFE_METHODS
             or obj.author == request.user
-            or request.user.role == 'moderator'
-            or request.user.role == 'admin'
+            or request.user.is_moderator
+            or request.user.is_admin
         )
