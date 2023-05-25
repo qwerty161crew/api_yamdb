@@ -2,13 +2,13 @@ from typing import Any, Optional, Union
 
 from django.core.mail import send_mail
 from django.db.models.query import QuerySet
+from django.db.models import Avg
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
     filters,
     generics,
-    mixins,
     serializers,
     status,
     viewsets,
@@ -34,7 +34,7 @@ from .serializers import (
     TitleWriteSerializer,
     UserSerializer,
 )
-
+from .core import ViewSet
 
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewsSerializers
@@ -55,7 +55,7 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().annotate(Avg('reviews__score'))
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filterset_class = TitleFilter
@@ -88,12 +88,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=self.review())
 
 
-class CategoriesViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
+class CategoriesViewSet(ViewSet):
     queryset = Categorie.objects.all()
     serializer_class = CatigoriesSerializers
     permission_classes = (IsAdminOrReadOnly,)
@@ -103,12 +98,7 @@ class CategoriesViewSet(
     lookup_field = 'slug'
 
 
-class GenresViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
+class GenresViewSet(ViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenresSerializers
     permission_classes = (IsAdminOrReadOnly,)
@@ -248,7 +238,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
     def get_allowed_methods(
         self: 'MyTokenObtainPairView',
         detail: Optional[bool] = None,
-    ) -> list[str]:
+    ):
         if self.action == 'get_current_user':
             return ['GET', 'PATCH', 'HEAD', 'OPTIONS']
         return super().get_allowed_methods(detail=detail)

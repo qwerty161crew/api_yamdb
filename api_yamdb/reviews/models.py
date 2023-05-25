@@ -1,5 +1,6 @@
 import secrets
 from typing import Any, Optional
+from datetime import datetime
 
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -15,7 +16,8 @@ class User(AbstractUser):
 
     ROLE_CHOICES = [
         (ROLE_ANONYMOUS, 'Аноним'),
-        (ROLE_AUTHENTICATED, 'Аутентифицированный пользователь'),
+        (ROLE_AUTHENTICATED,
+         'Аутентифицированный пользователь'),
         (ROLE_MODERATOR, 'Модератор'),
         (ROLE_ADMIN, 'Администратор'),
     ]
@@ -59,7 +61,9 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=256)
-    year = models.PositiveIntegerField()
+    year = models.PositiveIntegerField(MaxValueValidator(
+        datetime.now().year),
+        error_messages={'validators': 'нельзя добавлять произведения из будущего :)'})
     category = models.ForeignKey(
         Categorie,
         related_name='categories',
@@ -77,12 +81,6 @@ class Title(models.Model):
     def __str__(self: 'Title') -> str:
         return self.name
 
-    def rating(self: 'Title') -> Optional[float]:
-        scores = self.reviews.values_list('score', flat=True)
-        if len(scores) != 0:
-            return sum(scores) / len(scores)
-        return None
-
 
 class Review(models.Model):
     text = models.TextField()
@@ -97,7 +95,7 @@ class Review(models.Model):
         related_name='author_reviews',
         on_delete=models.CASCADE,
     )
-    score = models.FloatField(
+    score = models.IntegerField(
         validators=[MinValueValidator(1.0), MaxValueValidator(10.0)],
         error_messages={'validators': 'Оценка от 1 до 10!'},
     )
