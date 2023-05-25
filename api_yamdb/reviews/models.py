@@ -8,13 +8,11 @@ from django.db.models import UniqueConstraint
 
 
 class User(AbstractUser):
-    ROLE_ANONYMOUS = 'anonymous'
     ROLE_AUTHENTICATED = 'user'
     ROLE_MODERATOR = 'moderator'
     ROLE_ADMIN = 'admin'
 
     ROLE_CHOICES = [
-        (ROLE_ANONYMOUS, 'Аноним'),
         (ROLE_AUTHENTICATED, 'Аутентифицированный пользователь'),
         (ROLE_MODERATOR, 'Модератор'),
         (ROLE_ADMIN, 'Администратор'),
