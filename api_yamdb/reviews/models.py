@@ -1,5 +1,5 @@
 import secrets
-from typing import Any, Optional
+from typing import Any
 from datetime import datetime
 
 from django.contrib.auth.models import AbstractUser
@@ -66,9 +66,10 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=256)
-    year = models.PositiveIntegerField(MaxValueValidator(
-        datetime.now().year),
-        error_messages={'validators': 'нельзя добавлять произведения из будущего :)'})
+    year = models.PositiveIntegerField(validators=[MaxValueValidator(
+        datetime.now().year)],
+        error_messages={'validators':
+                        'нельзя добавлять произведения из будущего :)'})
     category = models.ForeignKey(
         Categorie,
         related_name='categories',
