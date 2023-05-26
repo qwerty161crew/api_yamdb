@@ -1,5 +1,6 @@
 import secrets
-from typing import Any, Optional
+from typing import Any
+from datetime import datetime
 
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -8,18 +9,16 @@ from django.db.models import UniqueConstraint
 
 
 class User(AbstractUser):
-    ROLE_ANONYMOUS = 'anonymous'
     ROLE_AUTHENTICATED = 'user'
     ROLE_MODERATOR = 'moderator'
     ROLE_ADMIN = 'admin'
-
     ROLE_CHOICES = [
-        (ROLE_ANONYMOUS, 'Аноним'),
         (ROLE_AUTHENTICATED, 'Аутентифицированный пользователь'),
         (ROLE_MODERATOR, 'Модератор'),
         (ROLE_ADMIN, 'Администратор'),
     ]
-
+    username = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(max_length=254, unique=True)
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,
@@ -30,6 +29,14 @@ class User(AbstractUser):
         blank=True,
     )
     confirmation_code = models.CharField(max_length=12, null=True, blank=True)
+
+    @property
+    def is_admin(self):
+        return self.role == self.ROLE_ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == self.ROLE_MODERATOR
 
     def generate_confirmation_code(self: 'User') -> None:
         self.confirmation_code = secrets.token_hex(6)
@@ -59,7 +66,10 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=256)
-    year = models.PositiveIntegerField()
+    year = models.PositiveIntegerField(validators=[MaxValueValidator(
+        datetime.now().year)],
+        error_messages={'validators':
+                        'нельзя добавлять произведения из будущего :)'})
     category = models.ForeignKey(
         Categorie,
         related_name='categories',
@@ -77,12 +87,6 @@ class Title(models.Model):
     def __str__(self: 'Title') -> str:
         return self.name
 
-    def rating(self: 'Title') -> Optional[float]:
-        scores = self.reviews.values_list('score', flat=True)
-        if len(scores) != 0:
-            return sum(scores) / len(scores)
-        return None
-
 
 class Review(models.Model):
     text = models.TextField()
@@ -97,7 +101,7 @@ class Review(models.Model):
         related_name='author_reviews',
         on_delete=models.CASCADE,
     )
-    score = models.FloatField(
+    score = models.IntegerField(
         validators=[MinValueValidator(1.0), MaxValueValidator(10.0)],
         error_messages={'validators': 'Оценка от 1 до 10!'},
     )

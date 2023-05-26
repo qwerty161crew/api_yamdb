@@ -1,6 +1,10 @@
 from typing import Any, Dict
 
-from django.core.validators import EmailValidator, RegexValidator
+from django.core.validators import (
+    EmailValidator,
+    MaxLengthValidator,
+    RegexValidator,
+)
 from rest_framework import exceptions, serializers, status
 from rest_framework.response import Response
 from rest_framework.validators import UniqueValidator
@@ -61,7 +65,8 @@ class CatigoriesSerializers(serializers.ModelSerializer):
 class TitlesSerializers(serializers.ModelSerializer):
     category = CatigoriesSerializers(many=False, read_only=True)
     genre = GenresSerializers(many=True, read_only=True)
-    rating = serializers.FloatField(required=False)
+    rating = serializers.IntegerField(source='reviews__score__avg',
+                                      read_only=True)
 
     class Meta:
         fields = (
@@ -72,6 +77,7 @@ class TitlesSerializers(serializers.ModelSerializer):
             'description',
             'genre',
             'category',
+            'rating',
         )
         model = Title
 
@@ -116,19 +122,20 @@ class UserSerializer(serializers.ModelSerializer):
         validators=[
             UniqueValidator(queryset=User.objects.all()),
             EmailValidator(),
+            MaxLengthValidator(254),
         ],
     )
     username = serializers.CharField(
         validators=[
             UniqueValidator(queryset=User.objects.all()),
             RegexValidator(r'^[\w.@+-]+\Z'),
+            MaxLengthValidator(150),
         ],
     )
 
     class Meta:
         model = User
         fields = (
-            'id',
             'username',
             'email',
             'role',
@@ -136,39 +143,19 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
         )
-        read_only_fields = ('id',)
-
-    def to_representation(
-        self: 'UserSerializer',
-        instance: User,
-    ) -> Dict[str, Any]:
-        ret = super().to_representation(instance)
-        ret.pop('id')
-        return ret
 
     def update(
         self: 'UserSerializer',
         instance: User,
         validated_data: Dict[str, Any],
     ) -> User:
-        if (
-            'role' in validated_data
-            and self.context['request'].path == '/api/v1/users/me/'
-        ):
+        if 'role' in validated_data and self.context.get('change_self'):
             validated_data.pop('role')
         return super().update(instance, validated_data)
 
     def validate_username(self: 'UserSerializer', value: str) -> str:
-        if value.lower() == 'me' or len(value) > 150:
+        if value.lower() == 'me':
             raise serializers.ValidationError(
-                'Использовать "me" запрещено, '
-                'и длина имени не должны превышать 150 символов.',
-            )
-        return value
-
-    def validate_email(self: 'UserSerializer', value: str) -> str:
-        if len(value) > 254:
-            raise serializers.ValidationError(
-                'Email не должен быть длиннее 254 символов.',
+                'Использовать имя "me" запрещено.',
             )
         return value
