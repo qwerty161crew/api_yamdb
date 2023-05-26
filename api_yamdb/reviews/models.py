@@ -9,19 +9,16 @@ from django.db.models import UniqueConstraint
 
 
 class User(AbstractUser):
-    ROLE_ANONYMOUS = 'anonymous'
     ROLE_AUTHENTICATED = 'user'
     ROLE_MODERATOR = 'moderator'
     ROLE_ADMIN = 'admin'
-
     ROLE_CHOICES = [
-        (ROLE_ANONYMOUS, 'Аноним'),
-        (ROLE_AUTHENTICATED,
-         'Аутентифицированный пользователь'),
+        (ROLE_AUTHENTICATED, 'Аутентифицированный пользователь'),
         (ROLE_MODERATOR, 'Модератор'),
         (ROLE_ADMIN, 'Администратор'),
     ]
-
+    username = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(max_length=254, unique=True)
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,
@@ -32,6 +29,14 @@ class User(AbstractUser):
         blank=True,
     )
     confirmation_code = models.CharField(max_length=12, null=True, blank=True)
+
+    @property
+    def is_admin(self):
+        return self.role == self.ROLE_ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == self.ROLE_MODERATOR
 
     def generate_confirmation_code(self: 'User') -> None:
         self.confirmation_code = secrets.token_hex(6)
