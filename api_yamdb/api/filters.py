@@ -12,7 +12,6 @@ class TitleFilter(filter_.FilterSet):
     )
     name = filter_.CharFilter()
     year = filter_.CharFilter()
-    exceptions.AuthenticationFailed
 
     class Meta:
         model = Title

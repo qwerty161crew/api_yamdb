@@ -27,12 +27,12 @@ from .filters import TitleFilter
 from .pagination import CustomPagination
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly, IsSelfOrAdmin
 from .serializers import (
-    CatigoriesSerializers,
-    CommentsSerializers,
-    GenresSerializers,
+    CatigoriesSerializer,
+    CommentsSerializer,
+    GenresSerializer,
     MyTokenObtainPairSerializer,
-    ReviewsSerializers,
-    TitlesSerializers,
+    ReviewsSerializer,
+    TitlesSerializer,
     TitleWriteSerializer,
     UserSerializer,
 )
@@ -40,7 +40,7 @@ from .core import ViewSet
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
-    serializer_class = ReviewsSerializers
+    serializer_class = ReviewsSerializer
     permission_classes = (IsOwnerOrReadOnly,)
     pagination_class = CustomPagination
 
@@ -69,12 +69,12 @@ class TitlesViewSet(viewsets.ModelViewSet):
         self: 'TitlesViewSet',
     ) -> serializers.ModelSerializer:
         if self.action in ('list', 'retrieve'):
-            return TitlesSerializers
+            return TitlesSerializer
         return TitleWriteSerializer
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentsSerializers
+    serializer_class = CommentsSerializer
     permission_classes = (IsOwnerOrReadOnly,)
     pagination_class = CustomPagination
 
@@ -93,7 +93,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
 
 class CategoriesViewSet(ViewSet):
     queryset = Categorie.objects.all()
-    serializer_class = CatigoriesSerializers
+    serializer_class = CatigoriesSerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = CustomPagination
     filter_backends = [filters.SearchFilter]
@@ -103,7 +103,7 @@ class CategoriesViewSet(ViewSet):
 
 class GenresViewSet(ViewSet):
     queryset = Genre.objects.all()
-    serializer_class = GenresSerializers
+    serializer_class = GenresSerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = CustomPagination
     filter_backends = [filters.SearchFilter]

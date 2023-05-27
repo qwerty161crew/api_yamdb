@@ -13,7 +13,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from reviews.models import Categorie, Comment, Genre, Review, Title, User
 
 
-class ReviewsSerializers(serializers.ModelSerializer):
+class ReviewsSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
@@ -25,7 +25,7 @@ class ReviewsSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate(
-        self: 'ReviewsSerializers',
+        self: 'ReviewsSerializer',
         data: Dict[str, Any],
     ) -> Dict[str, Any]:
         if self.context['request'].method != 'POST':
@@ -38,7 +38,7 @@ class ReviewsSerializers(serializers.ModelSerializer):
         return data
 
 
-class CommentsSerializers(serializers.ModelSerializer):
+class CommentsSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
@@ -50,21 +50,21 @@ class CommentsSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class GenresSerializers(serializers.ModelSerializer):
+class GenresSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
         model = Genre
 
 
-class CatigoriesSerializers(serializers.ModelSerializer):
+class CatigoriesSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
         model = Categorie
 
 
-class TitlesSerializers(serializers.ModelSerializer):
-    category = CatigoriesSerializers(many=False, read_only=True)
-    genre = GenresSerializers(many=True, read_only=True)
+class TitlesSerializer(serializers.ModelSerializer):
+    category = CatigoriesSerializer(many=False, read_only=True)
+    genre = GenresSerializer(many=True, read_only=True)
     rating = serializers.IntegerField(source='reviews__score__avg',
                                       read_only=True)
 
